@@ -12,6 +12,11 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // Define the pin for the buzzer
 #define BUZZER_PIN 7
 
+// Define the pins for the LEDs
+#define LED_LOW_PIN 6
+#define LED_MED_PIN 5
+#define LED_HIGH_PIN 4
+
 // Define the pins for the SIM800L GSM module
 #define SIM800L_TX 2
 #define SIM800L_RX 3
@@ -21,6 +26,8 @@ SoftwareSerial sim800l(SIM800L_TX, SIM800L_RX);
 
 // Threshold for flood level in centimeters
 #define FLOOD_THRESHOLD 100
+#define MEDIUM_WATER_LEVEL 500
+#define HIGH_WATER_LEVEL 700
 
 void setup() {
   // Initialize serial communication
@@ -35,6 +42,10 @@ void setup() {
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
+
+  pinMode(LED_LOW_PIN, OUTPUT);
+  pinMode(LED_MED_PIN, OUTPUT);
+  pinMode(LED_HIGH_PIN, OUTPUT);
 
   // Test the LCD display
   lcd.setCursor(0, 0);
@@ -71,13 +82,30 @@ void loop() {
   lcd.print(distance);
   lcd.print(" cm  ");
 
-  // Check if the water level is below the threshold
+  // Control LEDs based on water level
   if (distance < FLOOD_THRESHOLD) {
+    digitalWrite(LED_LOW_PIN, HIGH);
+    digitalWrite(LED_MED_PIN, LOW);
+    digitalWrite(LED_HIGH_PIN, LOW);
     digitalWrite(BUZZER_PIN, HIGH);
     lcd.setCursor(0, 0);
     lcd.print("!! FLOOD ALERT !!");
     sendSMS("Flood alert! Water level is too high.");
+  } else if (distance < MEDIUM_WATER_LEVEL) {
+    digitalWrite(LED_LOW_PIN, LOW);
+    digitalWrite(LED_MED_PIN, HIGH);
+    digitalWrite(LED_HIGH_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+  } else if (distance < HIGH_WATER_LEVEL) {
+    digitalWrite(LED_LOW_PIN, LOW);
+    digitalWrite(LED_MED_PIN, LOW);
+    digitalWrite(LED_HIGH_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, LOW);
   } else {
+    // No alert condition
+    digitalWrite(LED_LOW_PIN, LOW);
+    digitalWrite(LED_MED_PIN, LOW);
+    digitalWrite(LED_HIGH_PIN, LOW);
     digitalWrite(BUZZER_PIN, LOW);
   }
 
